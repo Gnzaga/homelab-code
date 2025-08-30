@@ -1,0 +1,40 @@
+# gpu-operator-values.yaml
+
+# High-level nodeSelector applied to all sub-charts where possible
+nodeSelector:
+  compute-type: gpu
+
+driver:
+  enabled: true
+  nodeSelector:
+    compute-type: gpu
+
+devicePlugin:
+  nodeSelector:
+    compute-type: gpu
+
+nvidiaContainerToolkit:
+  nodeSelector:
+    compute-type: gpu
+
+dcgmExporter:
+  nodeSelector:
+    compute-type: gpu
+
+operatorValidator:
+  nodeSelector:
+    compute-type: gpu
+
+# Node Feature Discovery: By default, NFD runs on all nodes to label them.
+# If you REALLY only want it on the GPU node, set this:
+nodeFeatureDiscovery:
+  worker:
+    nodeSelector:
+      compute-type: gpu
+  master:
+    nodeSelector:
+      compute-type: gpu
+
+  # If you want to gather features from ALL nodes, omit the nodeSelector here
+  # or set it to something else. But if your goal is strictly "only run on clemenza,"
+  # you can keep it like this.

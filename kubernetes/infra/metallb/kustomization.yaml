@@ -1,0 +1,11 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  - metallb-config.yaml
+  - metallb-controller-metrics-svc.yaml
+  - metallb-metrics.yaml
+  - metallb-monitors.yaml
+  - metallb-servicemonitor.yaml
+  - metallb-servicemonitors.yaml
+  - prom-cert.yaml
+  - prom-ingress.yaml

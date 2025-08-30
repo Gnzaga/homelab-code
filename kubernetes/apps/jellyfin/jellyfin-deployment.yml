@@ -1,0 +1,200 @@
+########################################
+# Namespace (existing)
+########################################
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: jellyfin-v2
+---
+########################################
+# Storage Class  (cluster-scoped → no namespace)
+########################################
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: jellyfin-local-storage
+provisioner: kubernetes.io/no-provisioner
+volumeBindingMode: WaitForFirstConsumer
+---
+########################################
+# Config PV  (cluster-scoped → no namespace)
+########################################
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: jellyfin-config-pv
+  labels:
+    type: local
+    app: jellyfin-v2
+spec:
+  storageClassName: jellyfin-local-storage
+  capacity:
+    storage: 1Gi
+  accessModes: ["ReadWriteOnce"]
+  persistentVolumeReclaimPolicy: Retain
+  hostPath:
+    path: /mnt/kube-storage/jellyfin/config
+    type: DirectoryOrCreate
+---
+########################################
+# Config PVC
+########################################
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: jellyfin-config
+  namespace: jellyfin-v2
+spec:
+  storageClassName: jellyfin-local-storage
+  accessModes: ["ReadWriteOnce"]
+  resources:
+    requests:
+      storage: 1Gi
+  selector:
+    matchLabels:
+      type: local
+      app: jellyfin-v2
+---
+########################################
+# Cache PV  (cluster-scoped → no namespace)
+########################################
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: jellyfin-cache-pv
+  labels:
+    type: local
+    app: jellyfin-v2
+    usage: cache
+spec:
+  storageClassName: jellyfin-local-storage
+  capacity:
+    storage: 10Gi
+  accessModes: ["ReadWriteOnce"]
+  persistentVolumeReclaimPolicy: Retain
+  hostPath:
+    path: /mnt/kube-storage/jellyfin/cache
+---
+########################################
+# Cache PVC
+########################################
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: jellyfin-cache
+  namespace: jellyfin-v2
+spec:
+  storageClassName: jellyfin-local-storage
+  accessModes: ["ReadWriteOnce"]
+  resources:
+    requests:
+      storage: 10Gi
+  selector:
+    matchLabels:
+      type: local
+      app: jellyfin-v2
+      usage: cache
+---
+########################################
+# Media PV (NFS) – cluster-scoped
+########################################
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: jellyfin-media-pv
+  labels:
+    type: nfs
+    app: jellyfin-v2
+    content: media
+spec:
+  capacity:
+    storage: 14000Gi   # adjust if you like
+  accessModes: ["ReadWriteMany"]
+  persistentVolumeReclaimPolicy: Retain
+  mountOptions:
+    - hard
+    - nfsvers=4.1
+  nfs:
+    server: 192.168.42.59
+    path: /mnt/storage/plex
+---
+########################################
+# Media PVC
+########################################
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: jellyfin-media
+  namespace: jellyfin-v2
+spec:
+  volumeName: jellyfin-media-pv
+  accessModes: ["ReadWriteMany"]
+  resources:
+    requests:
+      storage: 14000Gi
+---
+########################################
+# External LoadBalancer service
+########################################
+apiVersion: v1
+kind: Service
+metadata:
+  name: jellyfin-v2
+  namespace: jellyfin-v2
+spec:
+  type: LoadBalancer        # needs MetalLB or similar
+  loadBalancerIP: 192.168.42.107
+  selector:
+    app: jellyfin-v2
+  sessionAffinity: ClientIP
+  ports:
+    - name: http
+      port: 80
+      targetPort: 8096
+    - name: https
+      port: 443
+      targetPort: 8920
+---
+########################################
+# Deployment
+########################################
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: jellyfin-v2
+  namespace: jellyfin-v2
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: jellyfin-v2
+  template:
+    metadata:
+      labels:
+        app: jellyfin-v2
+    spec:
+      securityContext:
+        fsGroup: 1000
+      volumes:
+        - name: config
+          persistentVolumeClaim:
+            claimName: jellyfin-config
+        - name: cache
+          persistentVolumeClaim:
+            claimName: jellyfin-cache
+        - name: media
+          persistentVolumeClaim:
+            claimName: jellyfin-media
+      containers:
+        - name: jellyfin
+          image: jellyfin/jellyfin:latest   # or pin newest tag
+          imagePullPolicy: IfNotPresent
+          securityContext:
+            runAsUser: 1000
+          volumeMounts:
+            - name: config
+              mountPath: /config
+            - name: cache
+              mountPath: /cache
+            - name: media
+              mountPath: /media

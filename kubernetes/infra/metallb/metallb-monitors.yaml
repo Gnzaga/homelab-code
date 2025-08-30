@@ -1,0 +1,37 @@
+# metallb-monitors.yaml  (apply in your Prometheus namespace, e.g., monitoring)
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: metallb-controller
+  namespace: monitoring          # <— change to your Prometheus namespace
+  labels:
+    release: kube-prometheus-stack   # <— adjust to match your install
+spec:
+  namespaceSelector:
+    matchNames: ["metallb-system"]
+  selector:
+    matchLabels:
+      app: metallb
+      component: controller
+  endpoints:
+    - port: http-metrics
+      interval: 30s
+---
+apiVersion: monitoring.coreos.com/v1
+kind: PodMonitor
+metadata:
+  name: metallb-speaker
+  namespace: monitoring
+  labels:
+    release: kube-prometheus-stack
+spec:
+  namespaceSelector:
+    matchNames: ["metallb-system"]
+  selector:
+    matchLabels:
+      app: metallb
+      component: speaker
+  podMetricsEndpoints:
+    - port: http-metrics
+      interval: 30s
+
