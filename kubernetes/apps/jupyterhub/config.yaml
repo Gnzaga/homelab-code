@@ -1,0 +1,37 @@
+hub:
+  config:
+    Authenticator:
+      enable_auth_sate: true   # Double-check this key—did you mean "enable_auth_state"?
+      allow_all: true
+    JupyterHub:
+      admin_access: true
+      admin_users:
+        - gnzaga  # Replace with your GitHub username
+      authenticator_class: oauthenticator.github.GitHubOAuthenticator
+      log_level: DEBUG
+    GitHubOAuthenticator:
+      client_id: ""
+      client_secret: ""
+      oauth_callback_url: https://py.gnzaga.com/hub/oauth_callback
+    KubeSpawner:
+      profile_list:
+        - display_name: "Standard CPU Notebook"
+          description: "Run on a general-purpose CPU node"
+          kubespawner_override:
+            node_selector: {}
+        - display_name: "GPU-Enabled Notebook"
+          description: "Run on a node with GPU acceleration"
+          kubespawner_override:
+            node_selector:
+              compute-type: gpu
+            extra_resource_limits:
+              nvidia.com/gpu: "1"
+  nodeSelector:
+    node-role.kubernetes.io/worker: worker  # Restrict hub pod to worker nodes
+  
+proxy:
+  service:
+    type: LoadBalancer  # Expose via LoadBalancer
+    loadBalancerIP: 192.168.42.105  # Use a static IP for LoadBalancer
+
+

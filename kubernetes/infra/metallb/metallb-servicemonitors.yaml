@@ -1,0 +1,30 @@
+# metallb-servicemonitors.yaml
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: metallb-controller
+  namespace: metallb-system
+spec:
+  selector:
+    matchLabels:
+      name: metallb-controller-metrics   # or match via 'app/component' using 'matchExpressions'
+  namespaceSelector:
+    matchNames: ["metallb-system"]
+  endpoints:
+    - port: http-metrics
+      interval: 30s
+---
+apiVersion: monitoring.coreos.com/v1
+kind: PodMonitor
+metadata:
+  name: metallb-speaker
+  namespace: metallb-system
+spec:
+  selector:
+    matchLabels:
+      app: metallb
+      component: speaker
+  podMetricsEndpoints:
+    - port: http-metrics
+      interval: 30s
+

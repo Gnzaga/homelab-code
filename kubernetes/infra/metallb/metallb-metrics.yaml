@@ -1,0 +1,30 @@
+# metallb-metrics.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: metallb-controller-metrics
+  namespace: metallb-system
+spec:
+  selector:
+    app: metallb
+    component: controller   # <— adjust if your labels differ; check with: kubectl -n metallb-system get deploy -L app,component
+  ports:
+    - name: http-metrics
+      port: 7472
+      targetPort: 7472
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: metallb-speaker-metrics
+  namespace: metallb-system
+spec:
+  clusterIP: None            # scrape each speaker pod
+  selector:
+    app: metallb
+    component: speaker
+  ports:
+    - name: http-metrics
+      port: 7472
+      targetPort: 7472
+

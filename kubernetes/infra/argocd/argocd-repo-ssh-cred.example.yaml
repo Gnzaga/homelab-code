@@ -1,0 +1,20 @@
+apiVersion: v1
+kind: Secret
+metadata:
+  name: repo-homelab-code-ssh
+  namespace: argocd
+  labels:
+    argocd.argoproj.io/secret-type: repository
+type: Opaque
+stringData:
+  name: homelab-code
+  url: git@github.com:Gnzaga/homelab-code.git
+  sshPrivateKey: |
+    -----BEGIN OPENSSH PRIVATE KEY-----
+    <paste a read-only deploy key for this repo>
+    -----END OPENSSH PRIVATE KEY-----
+
+# Notes:
+# - Create a read-only Deploy Key for the GitHub repo, and paste it here.
+# - Apply with: kubectl apply -f kubernetes/infra/argocd/argocd-repo-ssh-cred.example.yaml
+# - Alternatively, add the repo in the Argo CD UI/CLI and do not commit this secret file.

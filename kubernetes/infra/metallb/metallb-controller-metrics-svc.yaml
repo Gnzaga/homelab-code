@@ -1,0 +1,18 @@
+# metallb-controller-metrics-svc.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: metallb-controller-metrics
+  namespace: metallb-system
+  labels:
+    app: metallb
+    component: controller
+spec:
+  selector:
+    app: metallb
+    component: controller
+  ports:
+    - name: http-metrics
+      port: 7472
+      targetPort: 7472
+

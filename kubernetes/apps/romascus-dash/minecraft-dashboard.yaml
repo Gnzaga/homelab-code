@@ -1,0 +1,61 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: minecraft-dashboard
+  labels:
+    app: minecraft-dashboard
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: minecraft-dashboard
+  template:
+    metadata:
+      labels:
+        app: minecraft-dashboard
+    spec:
+      containers:
+      - name: minecraft-dashboard
+        image: agonzaga/minecraft_backups_dash:latest
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 5000
+        env:
+        - name: ENVIRONMENT
+          value: production
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: minecraft-dashboard-service
+spec:
+  selector:
+    app: minecraft-dashboard
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 5000
+  type: LoadBalancer
+
+# Usage Instructions:
+# ------------------
+# 1. Apply this configuration to your Kubernetes cluster:
+#    kubectl apply -f minecraft-dashboard.yaml
+#
+# 2. Check deployment status:
+#    kubectl get deployments -n default
+#
+# 3. Check service status and get external IP:
+#    kubectl get services -n default
+#
+# 4. Access your Minecraft Dashboard at:
+#    http://<EXTERNAL-IP>
+#
+# 5. To view logs:
+#    kubectl logs -f deployment/minecraft-dashboard
+#
+# 6. To scale the deployment:
+#    kubectl scale deployment/minecraft-dashboard --replicas=<NUMBER>
+#
+# 7. To delete the deployment and service:
+#    kubectl delete -f minecraft-dashboard.yaml
