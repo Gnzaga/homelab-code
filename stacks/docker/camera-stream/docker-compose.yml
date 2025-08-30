@@ -1,0 +1,39 @@
+# ====================================================================
+# Stack: camera-stream
+# Endpoint: ag-rp2
+# Source: Portainer stack ID 152 (portainer_dump\compose\152\docker-compose.yml)
+# Generated: 2025-08-29 19:40:11
+#
+# What this does:
+# - Docker Compose stack exported from Portainer.
+# - Includes the following services (name : image):
+#   - restreamer : datarhei/restreamer:latest
+#
+# How to deploy:
+# - Ensure any referenced volumes/networks exist.
+# - Create/update a .env file if needed.
+# - Run: docker compose up -d
+# ====================================================================
+version: '3.8'
+
+services:
+  restreamer:
+    image: datarhei/restreamer:latest
+    container_name: restreamer
+    restart: unless-stopped
+    privileged: true
+    ports:
+      - "8080:8080"     # Web UI
+      - "1935:1935"     # RTMP
+      - "8181:8181"     # HLS
+      - "8888:8888"     # WebRTC signaling
+    devices:
+      - "/dev/video0:/dev/video0"  # Adjust if using another camera device
+    environment:
+      RS_USERNAME: ${RS_USERNAME}
+      RS_PASSWORD: ${RS_PASSWORD}
+    volumes:
+      - ${RESTREAMER_PORT1}:/restreamer/db
+
+volumes:
+  restreamer-data:

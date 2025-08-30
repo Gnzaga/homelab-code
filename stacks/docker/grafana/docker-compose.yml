@@ -1,0 +1,40 @@
+# ====================================================================
+# Stack: grafana
+# Endpoint: BL-MP2 ( Fredo )
+# Source: Portainer stack ID 100 (portainer_dump\compose\100\docker-compose.yml)
+# Generated: 2025-08-29 19:40:09
+#
+# What this does:
+# - Docker Compose stack exported from Portainer.
+# - Includes the following services (name : image):
+#   - grafana : grafana/grafana:latest
+#
+# How to deploy:
+# - Ensure any referenced volumes/networks exist.
+# - Create/update a .env file if needed.
+# - Run: docker compose up -d
+# ====================================================================
+version: '3.8'
+
+services:
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana
+    restart: unless-stopped
+    ports:
+      - ${GRAFANA_PORT1}:3000
+    environment:
+      - GF_SECURITY_ADMIN_USER=${GF_SECURITY_ADMIN_USER}
+      - GF_SECURITY_ADMIN_PASSWORD=${GF_SECURITY_ADMIN_PASSWORD}
+    volumes:
+      - ${GRAFANA_PORT2}:/var/lib/grafana
+      - ${GRAFANA_PORT3}:/etc/grafana/provisioning
+    networks:
+      - grafana-net
+
+volumes:
+  grafana-data:
+
+networks:
+  grafana-net:
+    driver: bridge

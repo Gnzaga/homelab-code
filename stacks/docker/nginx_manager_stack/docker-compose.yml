@@ -1,0 +1,38 @@
+# ====================================================================
+# Stack: nginx_manager_stack
+# Endpoint: BL-MP2 ( Fredo )
+# Source: Portainer stack ID 2 (portainer_dump\compose\2\docker-compose.yml)
+# Generated: 2025-08-29 19:40:08
+#
+# What this does:
+# - Docker Compose stack exported from Portainer.
+# - Includes the following services (name : image):
+#   - app : 'jc21/nginx-proxy-manager:latest'
+#
+# How to deploy:
+# - Ensure any referenced volumes/networks exist.
+# - Create/update a .env file if needed.
+# - Run: docker compose up -d
+# ====================================================================
+version: '3.8'
+services:
+  app:
+    image: 'jc21/nginx-proxy-manager:latest'
+    restart: unless-stopped
+    ports:
+      - '82:80'  # Public HTTP Port
+      - '4443:443'  # Public HTTPS Port
+      - '81:81'  # Admin Web Port
+    environment:
+      DISABLE_IPV6: 'true'
+    volumes:
+      - ${APP_PORT1}:/data
+      - ${APP_PORT2}:/etc/letsencrypt
+      - ${APP_PORT3}:/var/log/nginx
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: on-failure
+      update_config:
+        parallelism: 1
+        delay: 10s

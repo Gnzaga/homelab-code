@@ -1,0 +1,52 @@
+# ====================================================================
+# Stack: jupyter_hub
+# Endpoint: endpoint-13
+# Source: Portainer stack ID 83 (portainer_dump\compose\83\docker-compose.yml)
+# Generated: 2025-08-29 19:40:09
+#
+# What this does:
+# - Docker Compose stack exported from Portainer.
+# - Includes the following services (name : image):
+#   - jupyterhub : jupyterhub/jupyterhub:latest
+#   - user_notebook : jupyter/scipy-notebook:latest
+#
+# How to deploy:
+# - Ensure any referenced volumes/networks exist.
+# - Create/update a .env file if needed.
+# - Run: docker compose up -d
+# ====================================================================
+version: '3.8'
+
+services:
+  jupyterhub:
+    image: jupyterhub/jupyterhub:latest
+    container_name: jupyterhub
+    ports:
+      - ${JUPYTERHUB_PORT1}:8000
+    volumes:
+      - ${JUPYTERHUB_PORT2}:/srv/jupyterhub
+    environment:
+      - JUPYTERHUB_CONFIG_FILE=/srv/jupyterhub/jupyterhub_config.py
+    command: >
+      sh -c "if [ ! -f /srv/jupyterhub/jupyterhub_config.py ]; then
+              jupyterhub --generate-config -f /srv/jupyterhub/jupyterhub_config.py &&
+              sed -i 's/# c.Spawner.cmd = None/c.Spawner.cmd = [\"jupyter-labhub\"]/g' /srv/jupyterhub/jupyterhub_config.py &&
+              echo 'c.Spawner.default_url = \"/lab\"' >> /srv/jupyterhub/jupyterhub_config.py &&
+              echo 'c.JupyterHub.bind_url = \"http://:8000\"' >> /srv/jupyterhub/jupyterhub_config.py;
+            fi && jupyterhub -f /srv/jupyterhub/jupyterhub_config.py"
+    restart: always
+
+  user_notebook:
+    image: jupyter/scipy-notebook:latest
+    environment:
+      - NB_USER=jupyter
+      - NB_UID=1000
+      - NB_GID=100
+      - JUPYTER_ENABLE_LAB=yes
+    volumes:
+      - ${USER_NOTEBOOK_PORT1}:/home/jupyter
+    restart: always
+
+volumes:
+  jupyterhub_data:
+  user_data:

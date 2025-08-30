@@ -1,0 +1,87 @@
+version: "3.8"
+
+services:
+  #Sonarr is manager for automating downloads of tv shows
+  sonarr:
+    image: linuxserver/sonarr
+    container_name: sonarr
+    ports:
+      - 8989:8989
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
+    volumes:
+      - ${SONARR_VOLUME}:/config
+      - ${MEDIA_SERVER_MEDIA}:/data/media
+    restart: unless-stopped
+    
+  #Radarr is manager for automating downloads of movies  
+  radarr:
+    image: linuxserver/radarr
+    container_name: radarr
+    ports:
+      - 7878:7878
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
+    volumes:
+      - ${RADARR_VOLUME}:/config
+      - ${MEDIA_SERVER_MEDIA}:/data/media
+    restart: unless-stopped
+
+  # Lidarr is manager for automating downloads of music  
+  lidarr:
+    image: linuxserver/lidarr
+    container_name: lidarr
+    ports:
+      - 8686:8686
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
+    volumes:
+      - ${LIDARR_VOLUME}:/config
+      - ${MEDIA_SERVER_MEDIA}:/data/media
+    restart: unless-stopped
+
+  #Bazarr is a companion tool to Sonarr and Radarr for managing subtitles
+  bazarr:
+    image: linuxserver/bazarr
+    container_name: bazarr
+    ports:
+      - 6767:6767
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
+    volumes:
+      - ${BAZARR_VOLUME}:/config
+      - ${MEDIA_SERVER_MEDIA}:/data/media
+    restart: unless-stopped
+
+  #Prowlarr is an integrated indexer that automatically updates to Radarr and Sonarr
+  #it allows you to add indexers once, and them apply to all your downstream services
+  prowlarr:
+    image: lscr.io/linuxserver/prowlarr:latest
+    container_name: prowlarr
+    ports:
+      - 9696:9696
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
+    volumes:
+      - ${PROWLARR_VOLUME}:/config
+    restart: unless-stopped
+
+  #Flaresolver is required for some indexers ( 1337x ) to bypass cloudflare and other blocks
+  flaresolverr:
+    image: flaresolverr/flaresolverr:latest
+    container_name: flaresolverr
+    ports:
+      - 8191:8191
+    environment:
+      - LOG_LEVEL=${LOG_LEVEL}
+    restart: unless-stopped

@@ -1,0 +1,64 @@
+# ====================================================================
+# Stack: firefly
+# Endpoint: endpoint-16
+# Source: Portainer stack ID 78 (portainer_dump\compose\78\docker-compose.yml)
+# Generated: 2025-08-29 19:40:09
+#
+# What this does:
+# - Docker Compose stack exported from Portainer.
+# - Includes the following services (name : image):
+#   - firefly : fireflyiii/core:latest
+#   - firefly_db : postgres:latest
+#
+# How to deploy:
+# - Ensure any referenced volumes/networks exist.
+# - Create/update a .env file if needed.
+# - Run: docker compose up -d
+# ====================================================================
+version: '3.9'
+services:
+  firefly:
+    image: fireflyiii/core:latest
+    ports:
+      - "8080:8080"  # Expose Firefly III on port 8080
+    environment:
+      - ${FIREFLY_PORT1}:random-generated-key-here
+      - DB_CONNECTION=pgsql
+      - DB_HOST=firefly_db
+      - DB_PORT=5432
+      - DB_DATABASE=firefly
+      - DB_USERNAME=firefly
+      - DB_PASSWORD=${DB_PASSWORD}
+      - TRUSTED_PROXIES=*
+      - TZ=America/New_York
+    depends_on:
+      - firefly_db
+    volumes:
+      - ${FIREFLY_PORT2}:/var/www/html/storage
+    deploy:
+      replicas: 1
+      placement:
+        constraints: [node.role == manager]
+    networks:
+      - firefly_net
+
+  firefly_db:
+    image: postgres:latest
+    environment:
+      - POSTGRES_DB=firefly
+      - POSTGRES_USER=firefly
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+    volumes:
+      - ${FIREFLY_DB_PORT1}:/var/lib/postgresql/data
+    deploy:
+      replicas: 1
+    networks:
+      - firefly_net
+
+volumes:
+  firefly_data:
+  firefly_db_data:
+
+networks:
+  firefly_net:
+    driver: overlay

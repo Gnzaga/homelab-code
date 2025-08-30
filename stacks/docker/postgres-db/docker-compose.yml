@@ -1,0 +1,35 @@
+# ====================================================================
+# Stack: postgres-db
+# Endpoint: endpoint-20
+# Source: Portainer stack ID 92 (portainer_dump\compose\92\docker-compose.yml)
+# Generated: 2025-08-29 19:40:09
+#
+# What this does:
+# - Docker Compose stack exported from Portainer.
+# - Includes the following services (name : image):
+#   - postgres : postgres:15
+#
+# How to deploy:
+# - Ensure any referenced volumes/networks exist.
+# - Create/update a .env file if needed.
+# - Run: docker compose up -d
+# ====================================================================
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15  # Replace with your preferred PostgreSQL version
+    container_name: postgres-db
+    restart: always
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}              # moved to .env
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}  # moved to .env
+      POSTGRES_DB: my_database         # Replace with your desired database name
+    ports:
+      - "5432:5432"                    # Exposes PostgreSQL on localhost:5432
+    volumes:
+      - postgres_data:/var/lib/postgresql/data  # Persistent data storage
+      - ./init-scripts:/docker-entrypoint-initdb.d # Optional: Place SQL scripts here to run on startup
+
+volumes:
+  postgres_data:

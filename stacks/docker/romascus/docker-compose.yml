@@ -1,0 +1,71 @@
+# ====================================================================
+# Stack: romascus
+# Endpoint: Clemenza
+# Source: Portainer stack ID 145 (portainer_dump\compose\145\docker-compose.yml)
+# Generated: 2025-08-29 19:40:11
+#
+# What this does:
+# - Docker Compose stack exported from Portainer.
+# - Includes the following services (name : image):
+#   - bedrock : itzg/minecraft-bedrock-server
+#   - java : itzg/minecraft-server
+#   - restarter : docker:cli
+#
+# How to deploy:
+# - Ensure any referenced volumes/networks exist.
+# - Create/update a .env file if needed.
+# - Run: docker compose up -d
+# ====================================================================
+version: "3.8"
+
+services:
+  bedrock:
+    image: itzg/minecraft-bedrock-server
+    container_name: bedrock-server
+    restart: unless-stopped
+    ports:
+      - ${BEDROCK_PORT1}:19132/udp
+    environment:
+      EULA: "TRUE"
+      GAMEMODE: "survival"
+      DIFFICULTY: "normal"
+      SERVER_NAME: "Gnzaga Bedrock Server"
+      ONLINE_MODE: "true"
+      SERVER_PORT: "19132"
+      TZ: "America/New_York"
+    volumes:
+      - ${BEDROCK_PORT2}:/data
+
+  java:
+    image: itzg/minecraft-server
+    container_name: java-server
+    restart: unless-stopped
+    ports:
+      - ${JAVA_PORT1}:25565
+    environment:
+      EULA: "TRUE"
+      VERSION: "LATEST"
+      WHITELIST: "Gnzaga,madd1b"
+      OPS: "Gnzaga"
+      TZ: "America/New_York"
+    volumes:
+      - ${JAVA_PORT2}:/data
+
+  restarter:
+    image: docker:cli
+    container_name: mc-restart-helper
+    restart: unless-stopped
+    volumes:
+      - ${RESTARTER_PORT1}:/var/run/docker.sock
+    entrypoint: ["/bin/sh", "-c"]
+    command:
+      - |
+        while true; do
+          if [ "$$(date +'%H:%M')" = '06:00' ]; then
+            echo "Restarting Minecraft servers at 6:00 AM..."
+            docker restart bedrock-server
+            docker restart java-server
+            sleep 60
+          fi
+          sleep 30
+        done

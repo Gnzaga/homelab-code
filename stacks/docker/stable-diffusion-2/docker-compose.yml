@@ -1,0 +1,50 @@
+# ====================================================================
+# Stack: stable-diffusion-2
+# Endpoint: endpoint-7
+# Source: Portainer stack ID 26 (portainer_dump\compose\26\docker-compose.yml)
+# Generated: 2025-08-29 19:40:08
+#
+# What this does:
+# - Docker Compose stack exported from Portainer.
+# - Includes the following services (name : image):
+#   - stable-diffusion-webui : universonic/stable-diffusion-webui:minimal
+#
+# How to deploy:
+# - Ensure any referenced volumes/networks exist.
+# - Create/update a .env file if needed.
+# - Run: docker compose up -d
+# ====================================================================
+version: '3.8'
+
+services:
+  stable-diffusion-webui:
+    image: universonic/stable-diffusion-webui:minimal
+    command: --no-half --no-half-vae --precision full
+    runtime: nvidia
+    restart: unless-stopped
+    ports:
+      - ${SD_WEBUI_PORT:-8080}:8080/tcp
+    volumes:
+      - ${SD_DATA_DIR:-/srv/stable-diffusion}/inputs:/app/stable-diffusion-webui/inputs
+      - ${SD_DATA_DIR:-/srv/stable-diffusion}/textual_inversion_templates:/app/stable-diffusion-webui/textual_inversion_templates
+      - ${SD_DATA_DIR:-/srv/stable-diffusion}/embeddings:/app/stable-diffusion-webui/embeddings
+      - ${SD_DATA_DIR:-/srv/stable-diffusion}/extensions:/app/stable-diffusion-webui/extensions
+      - ${SD_DATA_DIR:-/srv/stable-diffusion}/models:/app/stable-diffusion-webui/models
+      - ${SD_DATA_DIR:-/srv/stable-diffusion}/localizations:/app/stable-diffusion-webui/localizations
+      - ${SD_DATA_DIR:-/srv/stable-diffusion}/outputs:/app/stable-diffusion-webui/outputs
+    cap_drop:
+      - ALL
+    cap_add:
+      - NET_BIND_SERVICE
+    deploy:
+      mode: global
+      placement:
+        constraints:
+          - "node.labels.iface != extern"
+      restart_policy:
+        condition: unless-stopped
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              capabilities: [gpu]

@@ -1,0 +1,33 @@
+# ====================================================================
+# Stack: ollama-stack
+# Endpoint: endpoint-7
+# Source: Portainer stack ID 7 (portainer_dump\compose\7\docker-compose.yml)
+# Generated: 2025-08-29 19:40:08
+#
+# What this does:
+# - Docker Compose stack exported from Portainer.
+# - Includes the following services (name : image):
+#   - ollama : ollama/ollama:latest
+#
+# How to deploy:
+# - Ensure any referenced volumes/networks exist.
+# - Create/update a .env file if needed.
+# - Run: docker compose up -d
+# ====================================================================
+version: '3.8'
+
+services:
+  ollama:
+    image: ollama/ollama:latest
+    container_name: ollama-container
+    ports:
+      - ${OLLAMA_PORT1}:11434
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - capabilities: [gpu]
+    volumes:
+      - ${OLLAMA_PORT2}:/data
+      - ${OLLAMA_PORT3}:/root/.ollama
+    restart: unless-stopped

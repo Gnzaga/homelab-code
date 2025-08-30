@@ -1,0 +1,25 @@
+# ====================================================================
+# Stack: searxng-ui
+# Endpoint: endpoint-7
+# Source: Portainer stack ID 9 (portainer_dump\compose\9\docker-compose.yml)
+# Generated: 2025-08-29 19:40:08
+#
+# What this does:
+# - Docker Compose stack exported from Portainer.
+# - Includes the following services (name : image):
+#   - searxng : searxng/searxng:latest
+#
+# How to deploy:
+# - Ensure any referenced volumes/networks exist.
+# - Create/update a .env file if needed.
+# - Run: docker compose up -d
+# ====================================================================
+services:
+  searxng:
+    image: searxng/searxng:latest
+    container_name: searxng-ui
+    ports:
+      - ${SEARXNG_PORT1}:8080
+    volumes:
+      - ${SEARXNG_PORT2}:/etc/searxng
+    restart: always

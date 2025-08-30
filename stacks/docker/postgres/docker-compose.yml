@@ -1,0 +1,45 @@
+# ====================================================================
+# Stack: postgres
+# Endpoint: endpoint-7
+# Source: Portainer stack ID 12 (portainer_dump\compose\12\docker-compose.yml)
+# Generated: 2025-08-29 19:40:08
+#
+# What this does:
+# - Docker Compose stack exported from Portainer.
+# - Includes the following services (name : image):
+#   - postgres : postgres:latest
+#
+# How to deploy:
+# - Ensure any referenced volumes/networks exist.
+# - Create/update a .env file if needed.
+# - Run: docker compose up -d
+# ====================================================================
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:latest
+    container_name: my_postgres
+    restart: always
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: database
+    volumes:
+      - ${POSTGRES_PORT1}:/var/lib/postgresql/data
+    networks:
+      - my_network
+    ports:
+      - "5434:5432"  # Expose PostgreSQL on port 5434 of the host machine
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER}"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+networks:
+  my_network:
+    driver: bridge
+
+volumes:
+  pgdata:

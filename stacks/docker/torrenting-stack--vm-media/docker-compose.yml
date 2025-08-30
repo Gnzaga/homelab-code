@@ -1,0 +1,137 @@
+# ====================================================================
+# Stack: torrenting-stack
+# Endpoint: VM-Media
+# Source: Portainer stack ID 115 (portainer_dump\compose\115\docker-compose.yml)
+# Generated: 2025-08-29 19:40:11
+#
+# What this does:
+# - Docker Compose stack exported from Portainer.
+# - Includes the following services (name : image):
+#   - gluetun : qmcgaw/gluetun
+#   - qbittorrent : linuxserver/qbittorrent
+#   - sonarr : linuxserver/sonarr
+#   - radarr : linuxserver/radarr
+#   - prowlarr : lscr.io/linuxserver/prowlarr:latest
+#   - flaresolverr : flaresolverr/flaresolverr:latest
+#   - jellyseerr : ghcr.io/fallenbagel/jellyseerr:latest
+#
+# How to deploy:
+# - Ensure any referenced volumes/networks exist.
+# - Create/update a .env file if needed.
+# - Run: docker compose up -d
+# ====================================================================
+version: "3.8"
+
+services:
+  #gluetun is a vpn tunnel that allows qbittorrent to download ONLY inside the vpn
+  gluetun:
+    image: qmcgaw/gluetun
+    container_name: gluetun
+    cap_add:
+      - NET_ADMIN
+    devices:
+      - /dev/net/tun
+    # see directions for how to set up with nord
+    environment:
+      - VPN_SERVICE_PROVIDER=${VPN_SERVICE_PROVIDER}
+      - VPN_TYPE=${VPN_TYPE}
+      - OPENVPN_USER=${OPENVPN_USER}
+      - OPENVPN_PASSWORD=${OPENVPN_PASSWORD}
+      - SERVER_COUNTRIES=${SERVER_COUNTRIES}
+      - TZ=${TZ}
+      - DOT=${DOT}
+      - DNS_ADDRESS=${DNS_ADDRESS}
+    volumes:
+      - ${GLUETUN_PORT1}:/gluetun
+      - ${GLUETUN_PORT2}:/data/media
+    ports:
+      - 8080:8080       # qBittorrent Web UI
+      - ${GLUETUN_PORT3}:6881
+      - ${GLUETUN_PORT4}:6881/udp
+    restart: unless-stopped
+  #Torrent download client which manages torrent downloads
+  qbittorrent:
+    image: linuxserver/qbittorrent
+    container_name: qbittorrent
+    #using gluetun network to *only* downlaod through vpn
+    network_mode: "service:gluetun"
+    depends_on:
+      gluetun:
+        condition: service_healthy
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
+      - WEBUI_PORT=${WEBUI_PORT}
+    volumes:
+      - ${QBITTORRENT_PORT1}:/config
+      - ${QBITTORRENT_PORT2}:/data/media
+    restart: unless-stopped
+    
+  #Sonar is manage for automating downloads of tv shows, this lies outside the gluetun network
+  sonarr:
+    image: linuxserver/sonarr
+    container_name: sonarr
+    ports:
+      - ${SONARR_PORT1}:8989
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
+    volumes:
+      - ${SONARR_PORT2}:/config
+      - ${SONARR_PORT3}:/data/media
+    restart: unless-stopped
+  #Radarr is manage for automating downloads of movies, this lies outside the gluetun network  
+  radarr:
+    image: linuxserver/radarr
+    container_name: radarr
+    ports:
+      - ${RADARR_PORT1}:7878
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
+    volumes:
+      - ${RADARR_PORT2}:/config
+      - ${RADARR_PORT3}:/data/media
+    restart: unless-stopped
+
+  #Prowlarr is an integrated indexer that automatically updates to Radarr and Sonarr
+  #it allows you to add indexers once, and them apply to all your downstream services
+  prowlarr:
+    image: lscr.io/linuxserver/prowlarr:latest
+    container_name: prowlarr
+    ports:
+      - ${PROWLARR_PORT1}:9696
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
+    volumes:
+      - ${PROWLARR_PORT2}:/config
+    restart: unless-stopped
+
+  #Flaresolver is required for some indexers ( 1337x ) to bypass cloudflare and other blocks
+  flaresolverr:
+    image: flaresolverr/flaresolverr:latest
+    container_name: flaresolverr
+    ports:
+      - ${FLARESOLVERR_PORT1}:8191
+    environment:
+      - LOG_LEVEL=${LOG_LEVEL}
+    restart: unless-stopped
+
+  #overseerr is a platform where users can request content for an admin(s) to process and grant
+  jellyseerr:
+    image: ghcr.io/fallenbagel/jellyseerr:latest
+    container_name: jellyseerr
+    environment:
+      - LOG_LEVEL=debug
+      - TZ=Asia/Tashkent
+      - PORT=5055 #optional
+    ports:
+      - ${JELLYSEERR_PORT1}:5055
+    volumes:
+      - ${JELLYSEERR_PORT2}:/app/config
+    restart: unless-stopped

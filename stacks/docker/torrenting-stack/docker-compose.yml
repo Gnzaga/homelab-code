@@ -1,0 +1,225 @@
+# ====================================================================
+# Stack: torrenting-stack
+# Endpoint: VM-Media
+# Source: Portainer stack ID 114 (portainer_dump\compose\114\docker-compose.yml)
+# Generated: 2025-08-29 19:40:10
+#
+# What this does:
+# - Docker Compose stack exported from Portainer.
+# - Includes the following services (name : image):
+#   - gluetun : qmcgaw/gluetun
+#   - qbittorrent : linuxserver/qbittorrent
+#   - nzbget : linuxserver/nzbget
+#   - sonarr : linuxserver/sonarr
+#   - radarr : linuxserver/radarr
+#   - lidarr : linuxserver/lidarr
+#   - bazarr : linuxserver/bazarr
+#   - prowlarr : lscr.io/linuxserver/prowlarr:latest
+#   - flaresolverr : flaresolverr/flaresolverr:latest
+#   - jellyfin : jellyfin/jellyfin:latest
+#   - jellyseerr : ghcr.io/fallenbagel/jellyseerr:latest
+#   - readarr : lscr.io/linuxserver/readarr:develop
+#
+# How to deploy:
+# - Ensure any referenced volumes/networks exist.
+# - Create/update a .env file if needed.
+# - Run: docker compose up -d
+# ====================================================================
+version: "3.8"
+services:
+  # VPN tunnel (gluetun)
+  gluetun:
+    image: qmcgaw/gluetun
+    container_name: gluetun
+    cap_add:
+      - NET_ADMIN
+    devices:
+      - /dev/net/tun
+    environment:
+      - VPN_SERVICE_PROVIDER=${VPN_SERVICE_PROVIDER}
+      - VPN_TYPE=${VPN_TYPE}
+      - OPENVPN_USER=${OPENVPN_USER}
+      - OPENVPN_PASSWORD=${OPENVPN_PASSWORD}
+      - SERVER_COUNTRIES=${SERVER_COUNTRIES}
+      - TZ=${TZ}
+      - DOT=${DOT}
+      - DNS_ADDRESS=${DNS_ADDRESS}
+    volumes:
+      - ${GLUETUN_PORT1}:/gluetun
+      - ${GLUETUN_PORT2}:/data/media
+    ports:
+      - ${GLUETUN_PORT3}:8080
+      - ${GLUETUN_PORT4}:6789
+      - ${GLUETUN_PORT5}:6881
+      - ${GLUETUN_PORT6}:6881/udp
+    restart: unless-stopped
+
+  qbittorrent:
+    image: linuxserver/qbittorrent
+    container_name: qbittorrent
+    network_mode: "service:gluetun"
+    depends_on:
+      gluetun:
+        condition: service_healthy
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
+      - WEBUI_PORT=${WEBUI_PORT}
+    volumes:
+      - ${QBITTORRENT_PORT1}:/config
+      - ${QBITTORRENT_PORT2}:/data/media
+    restart: unless-stopped
+
+  nzbget:
+    image: linuxserver/nzbget
+    container_name: nzbget
+    network_mode: "service:gluetun"
+    depends_on:
+      gluetun:
+        condition: service_healthy
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
+    volumes:
+      - ${NZBGET_PORT1}:/config
+      - ${NZBGET_PORT2}:/data/media
+      - ${NZBGET_PORT3}:/downloads
+    restart: unless-stopped
+
+  sonarr:
+    image: linuxserver/sonarr
+    container_name: sonarr
+    ports:
+      - ${SONARR_PORT1}:8989
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
+    volumes:
+      - ${SONARR_PORT2}:/config
+      - ${SONARR_PORT3}:/data/media
+    restart: unless-stopped
+
+  radarr:
+    image: linuxserver/radarr
+    container_name: radarr
+    ports:
+      - ${RADARR_PORT1}:7878
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
+    volumes:
+      - ${RADARR_PORT2}:/config
+      - ${RADARR_PORT3}:/data/media
+    restart: unless-stopped
+
+  lidarr:
+    image: linuxserver/lidarr
+    container_name: lidarr
+    ports:
+      - ${LIDARR_PORT1}:8686
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
+    volumes:
+      - ${LIDARR_PORT2}:/config
+      - ${LIDARR_PORT3}:/data/media
+    restart: unless-stopped
+
+  bazarr:
+    image: linuxserver/bazarr
+    container_name: bazarr
+    ports:
+      - ${BAZARR_PORT1}:6767
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
+    volumes:
+      - ${BAZARR_PORT2}:/config
+      - ${BAZARR_PORT3}:/data/media
+    restart: unless-stopped
+
+  prowlarr:
+    image: lscr.io/linuxserver/prowlarr:latest
+    container_name: prowlarr
+    ports:
+      - ${PROWLARR_PORT1}:9696
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
+    volumes:
+      - ${PROWLARR_PORT2}:/config
+    restart: unless-stopped
+
+  flaresolverr:
+    image: flaresolverr/flaresolverr:latest
+    container_name: flaresolverr
+    ports:
+      - ${FLARESOLVERR_PORT1}:8191
+    environment:
+      - LOG_LEVEL=${LOG_LEVEL}
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
+    volumes:
+      - ${FLARESOLVERR_PORT2}:/app
+    restart: unless-stopped
+
+  jellyfin:
+    image: jellyfin/jellyfin:latest
+    container_name: jellyfin
+    network_mode: host
+    environment:
+      - TZ=${TZ}
+      - NVIDIA_VISIBLE_DEVICES=${NVIDIA_VISIBLE_DEVICES}
+      - NVIDIA_DRIVER_CAPABILITIES=${NVIDIA_DRIVER_CAPABILITIES}
+      - JELLYFIN_PublishedServerUrl=${JELLYFIN_PUBLISHED_SERVER_URL}
+    volumes:
+      - ${JELLYFIN_PORT1}:/config
+      - ${JELLYFIN_PORT2}:/cache
+      - ${JELLYFIN_PORT3}:/media
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities:
+                - gpu
+    restart: unless-stopped
+
+  jellyseerr:
+    image: ghcr.io/fallenbagel/jellyseerr:latest
+    container_name: jellyseerr
+    environment:
+      - LOG_LEVEL=debug
+      - TZ=${TZ}
+      - PORT=5055
+    ports:
+      - ${JELLYSEERR_PORT1}:5055
+    volumes:
+      - ${JELLYSEERR_PORT2}:/app/config
+    restart: unless-stopped
+
+  # New Services: Readarr + 
+  readarr:
+    image: lscr.io/linuxserver/readarr:develop
+    container_name: readarr
+    ports:
+      - ${READARR_PORT1}:8787
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
+    volumes:
+      - ${READARR_PORT2}:/config
+      - ${READARR_PORT3}:/books
+    restart: unless-stopped
+
+

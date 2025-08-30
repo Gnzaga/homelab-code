@@ -1,0 +1,73 @@
+# ====================================================================
+# Stack: coder
+# Endpoint: endpoint-7
+# Source: Portainer stack ID 11 (portainer_dump\compose\11\docker-compose.yml)
+# Generated: 2025-08-29 19:40:08
+#
+# What this does:
+# - Docker Compose stack exported from Portainer.
+# - Includes the following services (name : image):
+#   - database : postgres:16
+#   - coder : ghcr.io/coder/coder:latest
+#   - watchtower : containrrr/watchtower
+#
+# How to deploy:
+# - Ensure any referenced volumes/networks exist.
+# - Create/update a .env file if needed.
+# - Run: docker compose up -d
+# ====================================================================
+version: "3.9"
+
+services:
+  database:
+    image: postgres:16
+    container_name: coder_database
+    environment:
+      POSTGRES_USER: ${CODER_DB_USER}
+      POSTGRES_PASSWORD: ${CODER_DB_PASSWORD}
+      POSTGRES_DB: coder
+    volumes:
+      - coder_db_data:/var/lib/postgresql/data
+    networks:
+      - coder_network
+    ports:
+      - "5433:5433"
+    restart: unless-stopped  # Automatically restart unless stopped manually
+
+  coder:
+    image: ghcr.io/coder/coder:latest
+    container_name: coder
+    user: root
+    environment:
+      CODER_PG_CONNECTION_URL: ${CODER_PG_CONNECTION_URL}
+      CODER_HTTP_ADDRESS: 0.0.0.0:7080
+      CODER_ACCESS_URL: ${CODER_ACCESS_URL}
+    ports:
+      - "7080:7080"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - workspace:/home/coder/workspace/
+      - /mnt/newdrive:/mnt/newdrive  # Mount /mnt/newdrive as a volume
+    networks:
+      - coder_network
+    restart: unless-stopped  # Automatically restart unless stopped manually
+
+  watchtower:
+    image: containrrr/watchtower
+    container_name: coder-watchtower
+    environment:
+      - WATCHTOWER_CLEANUP=true   # Remove old images after updates
+      - WATCHTOWER_INCLUDE_RESTART=true   # Restart the updated containers
+      - WATCHTOWER_POLL_INTERVAL=3600   # Check for updates every hour
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock  # Required for Watchtower to manage Docker containers
+    networks:
+      - coder_network
+    restart: unless-stopped  # Automatically restart unless stopped manually
+
+volumes:
+  coder_db_data:
+  workspace:
+
+networks:
+  coder_network:

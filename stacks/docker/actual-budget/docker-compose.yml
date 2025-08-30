@@ -1,0 +1,48 @@
+# ====================================================================
+# Stack: actual-budget
+# Endpoint: endpoint-34
+# Source: Portainer stack ID 154 (portainer_dump\compose\154\docker-compose.yml)
+# Generated: 2025-08-29 19:40:12
+#
+# What this does:
+# - Docker Compose stack exported from Portainer.
+# - Includes the following services (name : image):
+#   - actual : actualbudget/actual-server:latest
+#   - actual-ai : docker.io/sakowicz/actual-ai:latest
+#
+# How to deploy:
+# - Ensure any referenced volumes/networks exist.
+# - Create/update a .env file if needed.
+# - Run: docker compose up -d
+# ====================================================================
+version: '3.8'
+
+services:
+  actual:
+    image: actualbudget/actual-server:latest
+    container_name: actual
+    ports:
+      - ${ACTUAL_PORT1}:5006
+    volumes:
+      - ${ACTUAL_PORT2}:/data
+    restart: unless-stopped
+
+
+  actual-ai:
+      image: docker.io/sakowicz/actual-ai:latest
+      restart: unless-stopped
+      environment:
+        ACTUAL_SERVER_URL: ${ACTUAL_SERVER_URL}
+        ACTUAL_PASSWORD: ${ACTUAL_PASSWORD}
+        ACTUAL_BUDGET_ID: ${ACTUAL_BUDGET_ID} # moved to .env
+        CLASSIFICATION_SCHEDULE_CRON: 0 */4 * * * # How often to run classification.
+        LLM_PROVIDER: ollama # Can be "openai", "anthropic", "google-generative-ai", "ollama" or "groq"
+        FEATURES: '["classifyOnStartup", "syncAccountsBeforeClassify", "freeWebSearch", "rerunMissedTransactions", "suggestNewCategories", "disableRateLimiter", "dryRun"]'
+        OLLAMA_MODEL: llama3.2:latest
+        OLLAMA_BASE_URL: ${OLLAMA_BASE_URL}
+#     OLLAMA_MODEL=llama3.1 optional. required if you want to use an Ollama specific model, default is "phi3.5"
+#      OLLAMA_BASE_URL=http://localhost:11434/api # optional. required for ollama provider
+volumes:
+  actual_data:
+  
+

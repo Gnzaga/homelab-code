@@ -1,0 +1,67 @@
+version: "3.8"
+
+services:
+  #gluetun is a vpn tunnel that allows qbittorrent to download ONLY inside the vpn
+  gluetun:
+    image: qmcgaw/gluetun
+    container_name: gluetun
+    cap_add:
+      - NET_ADMIN
+    devices:
+      - /dev/net/tun
+    # see directions for how to set up with nord
+    environment:
+      - VPN_SERVICE_PROVIDER=${VPN_SERVICE_PROVIDER}
+      - VPN_TYPE=${VPN_TYPE}
+      - OPENVPN_USER=${OPENVPN_USER}
+      - OPENVPN_PASSWORD=${OPENVPN_PASSWORD}
+      - SERVER_COUNTRIES=${SERVER_COUNTRIES}
+      - TZ=${TZ}
+      - DOT=${DOT}
+      - DNS_ADDRESS=${DNS_ADDRESS}
+    volumes:
+      - ${GLUETUN_VOLUME}:/gluetun
+      - ${MEDIA_SERVER_MEDIA}:/data/media
+    ports:
+      - 8080:8080       # qBittorrent Web UI
+      - 6789:6789       # NZBGet UI
+      - 6881:6881
+      - 6881:6881/udp
+    restart: unless-stopped
+    
+  #Torrent download client which manages torrent downloads
+  qbittorrent:
+    image: linuxserver/qbittorrent
+    container_name: qbittorrent
+    #using gluetun network to *only* downlaod through vpn
+    network_mode: "service:gluetun"
+    depends_on:
+      gluetun:
+        condition: service_healthy
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
+      - WEBUI_PORT=${WEBUI_PORT}
+    volumes:
+      - ${QBITTORRENT_VOLUME}:/config
+      - ${MEDIA_SERVER_MEDIA}:/data/media
+    restart: unless-stopped
+
+  # NZB client (VPN)
+  nzbget:
+    image: linuxserver/nzbget
+    container_name: nzbget
+    network_mode: "service:gluetun"
+    depends_on:
+      gluetun:
+        condition: service_healthy
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
+    volumes:
+      - ${NZBGET_VOLUME}:/config
+      - ${MEDIA_SERVER_MEDIA}:/data/media
+      - ${NZBGET_Downloads}:/downloads
+    restart: unless-stopped

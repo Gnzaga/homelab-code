@@ -1,0 +1,40 @@
+# ====================================================================
+# Stack: pihole-stack
+# Endpoint: endpoint-8
+# Source: Portainer stack ID 1 (portainer_dump\compose\1\docker-compose.yml)
+# Generated: 2025-08-29 19:40:08
+#
+# What this does:
+# - Docker Compose stack exported from Portainer.
+# - Includes the following services (name : image):
+#   - pihole : pihole/pihole:latest
+#
+# How to deploy:
+# - Ensure any referenced volumes/networks exist.
+# - Create/update a .env file if needed.
+# - Run: docker compose up -d
+# ====================================================================
+version: "3"
+
+# More info at https://github.com/pi-hole/docker-pi-hole/ and https://docs.pi-hole.net/
+services:
+  pihole:
+    container_name: pihole-stack
+    image: pihole/pihole:latest
+    # For DHCP it is recommended to remove these ports and instead add: network_mode: "host"
+    ports:
+      - ${PIHOLE_PORT1}:53/tcp
+      - ${PIHOLE_PORT2}:53/udp
+      - "67:67/udp" # Only required if you are using Pi-hole as your DHCP server
+      - ${PIHOLE_PORT3}:80/tcp
+    environment:
+      TZ: 'America/Chicago'
+      # WEBPASSWORD: 'set a secure password here or it will be random'
+    # Volumes store your data between container upgrades
+    volumes:
+      - ${PIHOLE_PORT4}:/etc/pihole'
+      - ${PIHOLE_PORT5}:/etc/dnsmasq.d'
+    #   https://github.com/pi-hole/docker-pi-hole#note-on-capabilities
+    #cap_add:
+      #- NET_ADMIN # Required if you are using Pi-hole as your DHCP server, else not needed
+    restart: unless-stopped

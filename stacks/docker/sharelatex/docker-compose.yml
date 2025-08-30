@@ -1,0 +1,32 @@
+# ====================================================================
+# Stack: sharelatex
+# Endpoint: endpoint-11
+# Source: Portainer stack ID 59 (portainer_dump\compose\59\docker-compose.yml)
+# Generated: 2025-08-29 19:40:09
+#
+# What this does:
+# - Docker Compose stack exported from Portainer.
+# - Includes the following services (name : image):
+#   - sharelatex : sharelatex/sharelatex:latest
+#
+# How to deploy:
+# - Ensure any referenced volumes/networks exist.
+# - Create/update a .env file if needed.
+# - Run: docker compose up -d
+# ====================================================================
+version: '3'
+
+services:
+  sharelatex:
+    image: sharelatex/sharelatex:latest
+    container_name: sharelatex
+    restart: always
+    ports:
+      - ${SHARELATEX_PORT1}:80
+    environment:
+      SHARELATEX_APP_NAME: "My Overleaf"
+    volumes:
+      - ${SHARELATEX_PORT2}:/var/lib/sharelatex
+
+volumes:
+  sharelatex_data:

@@ -1,0 +1,37 @@
+# ====================================================================
+# Stack: wireguard
+# Endpoint: BL-MP2 ( Fredo )
+# Source: Portainer stack ID 94 (portainer_dump\compose\94\docker-compose.yml)
+# Generated: 2025-08-29 19:40:09
+#
+# What this does:
+# - Docker Compose stack exported from Portainer.
+# - Includes the following services (name : image):
+#   - wg-easy : ghcr.io/wg-easy/wg-easy
+#
+# How to deploy:
+# - Ensure any referenced volumes/networks exist.
+# - Create/update a .env file if needed.
+# - Run: docker compose up -d
+# ====================================================================
+version: "3.8"
+services:
+  wg-easy:
+    image: ghcr.io/wg-easy/wg-easy
+    container_name: wg-easy
+    restart: unless-stopped
+    privileged: true
+    environment:
+      - WG_HOST=174.167.16.3
+      - WG_PORT=51820
+      - WG_DEFAULT_ADDRESS=10.0.0.x
+      - WG_DEFAULT_DNS=1.1.1.1
+      - WG_ALLOWED_IPS=192.168.42.0/24,10.0.0.0/24
+      - UI_TRAFFIC_STATS=true
+      - UI_CHART_TYPE=1
+    volumes:
+      - ${WG_EASY_PORT1}:/etc/wireguard
+    ports:
+      - ${WG_EASY_PORT2}:51820/udp
+      - ${WG_EASY_PORT3}:51821/tcp
+    network_mode: "host"

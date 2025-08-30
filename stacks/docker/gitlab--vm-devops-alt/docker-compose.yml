@@ -1,0 +1,40 @@
+# ====================================================================
+# Stack: gitlab
+# Endpoint: VM-DevOps
+# Source: Portainer stack ID 129 (portainer_dump\compose\129\docker-compose.yml)
+# Generated: 2025-08-29 19:40:11
+#
+# What this does:
+# - Docker Compose stack exported from Portainer.
+# - Includes the following services (name : image):
+#   - gitlab : gitlab/gitlab-ce:latest
+#
+# How to deploy:
+# - Ensure any referenced volumes/networks exist.
+# - Create/update a .env file if needed.
+# - Run: docker compose up -d
+# ====================================================================
+version: '3.7'
+
+services:
+  gitlab:
+    image: gitlab/gitlab-ce:latest
+    container_name: gitlab
+    restart: always
+    hostname: ${GITLAB_DOMAIN}
+    environment:
+      - ${GITLAB_PORT1}://${GITLAB_DOMAIN}'; gitlab_rails['gitlab_shell_ssh_port'] = ${GITLAB_SSH_PORT}; letsencrypt['enable'] = false
+    ports:
+      - ${GITLAB_PORT2}:443
+      - ${GITLAB_PORT3}:22
+    volumes:
+      - ${GITLAB_PORT4}:/etc/gitlab
+      - ${GITLAB_PORT5}:/var/log/gitlab
+      - ${GITLAB_PORT6}:/var/opt/gitlab
+    shm_size: '256m'
+    networks:
+      - gitlab_network
+
+networks:
+  gitlab_network:
+    name: gitlab_network

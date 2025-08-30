@@ -1,0 +1,42 @@
+# ====================================================================
+# Stack: plex
+# Endpoint: endpoint-25
+# Source: Portainer stack ID 105 (portainer_dump\compose\105\docker-compose.yml)
+# Generated: 2025-08-29 19:40:10
+#
+# What this does:
+# - Docker Compose stack exported from Portainer.
+# - Includes the following services (name : image):
+#   - plex : plexinc/pms-docker
+#   - watchtower : containrrr/watchtower
+#
+# How to deploy:
+# - Ensure any referenced volumes/networks exist.
+# - Create/update a .env file if needed.
+# - Run: docker compose up -d
+# ====================================================================
+version: "3.8"
+
+services:
+  plex:
+    image: plexinc/pms-docker
+    container_name: plex
+    restart: unless-stopped
+    network_mode: host
+    runtime: nvidia
+    environment:
+      - NVIDIA_VISIBLE_DEVICES=all
+      - NVIDIA_DRIVER_CAPABILITIES=video,compute,utility
+      - TZ=America/New_York
+      - PLEX_CLAIM=  # Optional: insert your claim token here
+    volumes:
+      - ${PLEX_PORT1}:/config
+      - ${PLEX_PORT2}:/media
+      - ${PLEX_PORT3}:/transcode
+  watchtower:
+    image: containrrr/watchtower
+    container_name: watchtower
+    restart: unless-stopped
+    volumes:
+      - ${WATCHTOWER_PORT1}:/var/run/docker.sock
+    command: --cleanup

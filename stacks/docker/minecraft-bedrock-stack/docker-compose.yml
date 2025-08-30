@@ -1,0 +1,46 @@
+# ====================================================================
+# Stack: minecraft-bedrock-stack
+# Endpoint: endpoint-7
+# Source: Portainer stack ID 18 (portainer_dump\compose\18\docker-compose.yml)
+# Generated: 2025-08-29 19:40:08
+#
+# What this does:
+# - Docker Compose stack exported from Portainer.
+# - Includes the following services (name : image):
+#   - minecraft-bedrock : itzg/minecraft-bedrock-server
+#   - backup : kaiede/minecraft-bedrock-backup
+#
+# How to deploy:
+# - Ensure any referenced volumes/networks exist.
+# - Create/update a .env file if needed.
+# - Run: docker compose up -d
+# ====================================================================
+version: '3.8'
+
+services:
+  minecraft-bedrock:
+    image: itzg/minecraft-bedrock-server
+    container_name: minecraft-bedrock-server
+    ports:
+      - ${MINECRAFT_BEDROCK_PORT1}:19132/udp
+    volumes:
+      - ${MINECRAFT_BEDROCK_PORT2}:/data
+    environment:
+      EULA: "TRUE"
+      LEVEL: "'JhFIZr1sAQA='"
+      VERSION: LATEST
+      SERVER_NAME: "Romascus"
+      ENABLE_LAN_VISIBILITY: TRUE
+    restart: unless-stopped
+
+
+  backup:
+    image: kaiede/minecraft-bedrock-backup
+    restart: always
+    depends_on:
+      - minecraft-bedrock
+    environment:
+      TZ: "America/New_York"
+    volumes:
+      - ${BACKUP_PORT1}:/data
+      - ${BACKUP_PORT2}:/minecraft-bedrock

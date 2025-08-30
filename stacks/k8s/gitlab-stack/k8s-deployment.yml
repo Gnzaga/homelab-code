@@ -1,0 +1,31 @@
+# ====================================================================
+# K8s Workload: gitlab-stack
+# Endpoint/Cluster: endpoint-29
+# Source: Portainer stack ID 143 (portainer_dump\compose\143\k8s-deployment.yml)
+# Generated: 2025-08-29 19:40:11
+#
+# What this does:
+# - Kubernetes manifest exported from Portainer.
+#
+# How to deploy:
+# - kubectl apply -f .
+# - or manage via your GitOps flow.
+# ====================================================================
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: gitlab-deployer
+  namespace: cicd
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: gitlab-deployer
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: cluster-admin
+subjects:
+- kind: ServiceAccount
+  name: gitlab-deployer
+  namespace: cicd

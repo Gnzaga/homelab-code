@@ -1,0 +1,53 @@
+# ====================================================================
+# Stack: postgresql
+# Endpoint: endpoint-13
+# Source: Portainer stack ID 13 (portainer_dump\compose\13\docker-compose.yml)
+# Generated: 2025-08-29 19:40:08
+#
+# What this does:
+# - Docker Compose stack exported from Portainer.
+# - Includes the following services (name : image):
+#   - db : postgres:15
+#   - pgadmin : dpage/pgadmin4
+#
+# How to deploy:
+# - Ensure any referenced volumes/networks exist.
+# - Create/update a .env file if needed.
+# - Run: docker compose up -d
+# ====================================================================
+version: '3.8'
+
+services:
+  db:
+    image: postgres:15
+    container_name: postgresDB
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: myappdb
+    ports:
+      - ${DB_PORT1}:5432
+    volumes:
+      - ${DB_PORT2}:/var/lib/postgresql/data
+    networks:
+      - pg-network
+
+  pgadmin:
+    image: dpage/pgadmin4
+    container_name: pgadmin
+    restart: unless-stopped
+    environment:
+        PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL}
+        PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD}
+    ports:
+      - ${PGADMIN_PORT1}:80
+    networks:
+      - pg-network
+
+volumes:
+  pgdata:
+
+networks:
+  pg-network:
+    driver: bridge

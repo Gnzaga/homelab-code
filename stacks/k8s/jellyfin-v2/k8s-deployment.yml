@@ -1,0 +1,155 @@
+# ====================================================================
+# K8s Workload: jellyfin-v2
+# Endpoint/Cluster: endpoint-29
+# Source: Portainer stack ID 140 (portainer_dump\compose\140\k8s-deployment.yml)
+# Generated: 2025-08-29 19:40:11
+#
+# What this does:
+# - Kubernetes manifest exported from Portainer.
+#
+# How to deploy:
+# - kubectl apply -f .
+# - or manage via your GitOps flow.
+# ====================================================================
+########################################
+# Namespace
+########################################
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: jellyfin-v2
+---
+########################################
+# One PV + PVC covering the whole share
+# (share root is /mnt/storage/plex)
+########################################
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: jellyfin-nfs-pv
+spec:
+  capacity:
+    storage: 2Ti
+  accessModes: ["ReadWriteMany"]
+  persistentVolumeReclaimPolicy: Retain
+  nfs:
+    server: 192.168.42.59
+    path: /mnt/storage/plex
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: jellyfin-nfs
+  namespace: jellyfin-v2
+spec:
+  accessModes: ["ReadWriteMany"]
+  resources:
+    requests:
+      storage: 2Ti
+  volumeName: jellyfin-nfs-pv
+---
+########################################
+# Headless service for StatefulSet DNS
+########################################
+apiVersion: v1
+kind: Service
+metadata:
+  name: jellyfin-headless
+  namespace: jellyfin-v2
+spec:
+  clusterIP: None
+  selector:
+    app: jellyfin-v2
+  ports:
+    - port: 8096
+---
+########################################
+# External LoadBalancer service
+########################################
+apiVersion: v1
+kind: Service
+metadata:
+  name: jellyfin-v2
+  namespace: jellyfin-v2
+spec:
+  type: LoadBalancer
+  loadBalancerIP: 192.168.42.107
+  selector:
+    app: jellyfin-v2
+  sessionAffinity: ClientIP
+  ports:
+    - name: http
+      port: 80
+      targetPort: 8096
+    - name: https
+      port: 443
+      targetPort: 8920
+---
+########################################
+# StatefulSet (shared PVC via subPath)
+########################################
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: jellyfin-v2
+  namespace: jellyfin-v2
+spec:
+  serviceName: jellyfin-headless
+  replicas: 3
+  selector:
+    matchLabels:
+      app: jellyfin-v2
+  template:
+    metadata:
+      labels:
+        app: jellyfin-v2
+    spec:
+      securityContext:
+        fsGroup: 1000            # ensure NFS files appear writable
+      containers:
+        - name: jellyfin
+          image: jellyfin/jellyfin:latest
+          imagePullPolicy: IfNotPresent
+          securityContext:
+            runAsUser: 1000
+            runAsGroup: 1000
+          ports:
+            - containerPort: 8096
+            - containerPort: 8920
+          volumeMounts:
+            - name: plex
+              mountPath: /config
+              subPath: config        # -> /mnt/storage/plex/config
+            - name: plex
+              mountPath: /cache
+              subPath: cache         # -> /mnt/storage/plex/cache
+            - name: plex
+              mountPath: /media
+              subPath: media         # -> /mnt/storage/plex/media
+      volumes:
+        - name: plex
+          persistentVolumeClaim:
+            claimName: jellyfin-nfs
+---
+########################################
+# Horizontal Pod Autoscaler
+########################################
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: jellyfin-v2
+  namespace: jellyfin-v2
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: StatefulSet
+    name: jellyfin-v2
+  minReplicas: 2
+  maxReplicas: 4
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 70

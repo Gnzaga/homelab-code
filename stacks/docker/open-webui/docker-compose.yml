@@ -1,0 +1,91 @@
+# ====================================================================
+# Stack: open-webui
+# Endpoint: BL-MP2 ( Fredo )
+# Source: Portainer stack ID 104 (portainer_dump\compose\104\docker-compose.yml)
+# Generated: 2025-08-29 19:40:09
+#
+# What this does:
+# - Docker Compose stack exported from Portainer.
+# - Includes the following services (name : image):
+#   - open-webui : ghcr.io/open-webui/open-webui:main
+#   - pipelines : ghcr.io/open-webui/pipelines:main
+#
+# How to deploy:
+# - Ensure any referenced volumes/networks exist.
+# - Create/update a .env file if needed.
+# - Run: docker compose up -d
+# ====================================================================
+# docker-compose.yml
+
+version: '3.8'
+
+services:
+  open-webui:
+    image: ghcr.io/open-webui/open-webui:main
+    container_name: open-webui
+    volumes:
+      - ${OPEN_WEBUI_PORT1}:/app/backend/data
+    ports:
+      - "3000:8080" # Map host port 3000 to container port 8080
+    environment:
+      # --- User Provided Variables ---
+      ANONYMIZED_TELEMETRY: 'false'
+      DO_NOT_TRACK: 'true'
+      DOCKER: 'true'
+      ENV: 'prod'
+      GPG_KEY: 'A035C8C19219BA821ECEA86B64E628F8D684696D'
+      HF_HOME: '/app/backend/data/cache/embedding/models'
+      HOME: '/root'
+      LANG: 'C.UTF-8'
+      # !!! Important: OLLAMA_BASE_URL '/ollama' looks unusual.
+      # It usually needs to be a full URL like 'http://ollama:11434' if 'ollama' is another service
+      # in this compose file, or 'http://host.docker.internal:11434' if Ollama runs elsewhere on the host Docker network.
+      # Please verify this value is correct for your setup.
+      OLLAMA_BASE_URL: '/ollama'
+      OPENAI_API_BASE_URL: '' # Explicitly setting empty as provided
+      OPENAI_API_KEY: ''      # Explicitly setting empty as provided
+      PATH: '/usr/local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'
+      PORT: '8080' # Internal container port (do not change unless you know why)
+      PYTHON_SHA256: '07a4356e912900e61a15cb0949a06c4a05012e213ecd6b4e84d0f67aabbee372'
+      PYTHON_VERSION: '3.11.10'
+      RAG_EMBEDDING_MODEL: 'sentence-transformers/all-MiniLM-L6-v2'
+      RAG_RERANKING_MODEL: '' # Explicitly setting empty as provided
+      SCARF_NO_ANALYTICS: 'true'
+      SENTENCE_TRANSFORMERS_HOME: '/app/backend/data/cache/embedding/models'
+      TIKTOKEN_CACHE_DIR: '/app/backend/data/cache/tiktoken'
+      TIKTOKEN_ENCODING_NAME: 'cl100k_base'
+      USE_CUDA_DOCKER: 'false'
+      USE_CUDA_DOCKER_VER: 'cu121'
+      USE_EMBEDDING_MODEL_DOCKER: 'sentence-transformers/all-MiniLM-L6-v2'
+      USE_OLLAMA_DOCKER: 'false' # Set to false as per input
+      USE_RERANKING_MODEL_DOCKER: '' # Explicitly setting empty as provided
+      WEBUI_BUILD_VERSION: 'c4ea31357f49d08a14c86b2bd85fdcd489512e91'
+      WEBUI_SECRET_KEY: '' # Explicitly setting empty as provided - recommended to set a secure key
+      WHISPER_MODEL: 'base'
+      WHISPER_MODEL_DIR: '/app/backend/data/cache/whisper/models'
+      # --- End User Provided Variables ---
+    restart: unless-stopped
+    # --- Optional: Network Configuration ---
+    # If you run Ollama as another service in this *same* docker-compose file (e.g., named 'ollama'),
+    # you would uncomment the network below and set OLLAMA_BASE_URL to 'http://ollama:11434'.
+    # networks:
+    #   - webui-network
+
+  pipelines:
+    image: ghcr.io/open-webui/pipelines:main
+    container_name: pipelines
+    ports:
+      - ${PIPELINES_PORT1}:9099
+    volumes:
+      - ${PIPELINES_PORT2}:/app/pipelines
+    extra_hosts:
+      - ${PIPELINES_PORT3}:host-gateway
+    restart: always
+
+volumes:
+  pipelines:
+
+# --- Optional: Network Definition ---
+# networks:
+#   webui-network:
+#     driver: bridge

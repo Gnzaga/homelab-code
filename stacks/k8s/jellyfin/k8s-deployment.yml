@@ -1,0 +1,165 @@
+# ====================================================================
+# K8s Workload: jellyfin
+# Endpoint/Cluster: endpoint-29
+# Source: Portainer stack ID 135 (portainer_dump\compose\135\k8s-deployment.yml)
+# Generated: 2025-08-29 19:40:11
+#
+# What this does:
+# - Kubernetes manifest exported from Portainer.
+#
+# How to deploy:
+# - kubectl apply -f .
+# - or manage via your GitOps flow.
+# ====================================================================
+# jellyfin-ns.yaml
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: jellyfin
+---
+# jellyfin-pv.yaml  – NFS share that all nodes can reach
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: jellyfin-config-pv-v2
+  namespace: jellyfin
+spec:
+  capacity:
+    storage: 20Gi
+  accessModes: [ "ReadWriteMany" ]
+  nfs:
+    server: 192.168.42.27                # <-- your NAS/NFS box
+    path: /    # <-- exported path
+  persistentVolumeReclaimPolicy: Retain
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: jellyfin-config
+  namespace: jellyfin
+spec:
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 20Gi
+  volumeName: jellyfin-config-pv-v2 
+---
+# (optional) shared transcode cache – you can nuke it whenever
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: jellyfin-cache-pv
+  namespace: jellyfin
+spec:
+  capacity:
+    storage: 10Gi
+  accessModes: [ "ReadWriteMany" ]
+  nfs:
+    server: 192.168.42.27
+    path: /
+  persistentVolumeReclaimPolicy: Retain
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: jellyfin-cache
+  namespace: jellyfin
+spec:
+  accessModes: [ "ReadWriteMany" ]
+  resources:
+    requests:
+      storage: 10Gi
+---
+# jellyfin-deploy.yaml
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: jellyfin
+  namespace: jellyfin
+  labels:
+    app: jellyfin
+spec:
+  serviceName: jellyfin-headless
+  replicas: 3                                   # start with 3 pods
+  selector:
+    matchLabels:
+      app: jellyfin
+  template:
+    metadata:
+      labels:
+        app: jellyfin
+    spec:
+      containers:
+      - name: jellyfin
+        image: jellyfin/jellyfin:latest
+        imagePullPolicy: IfNotPresent
+        ports:
+          - containerPort: 8096                 # http
+          - containerPort: 8920                 # https (optional)
+        volumeMounts:
+          - name: config
+            mountPath: /config
+          - name: cache
+            mountPath: /cache
+          - name: media
+            mountPath: /media                   # read-only library
+        resources:                              # tune for your nodes
+          requests:
+            cpu: "500m"
+            memory: "512Mi"
+          limits:
+            cpu: "2"
+            memory: "2Gi"
+      volumes:
+        - name: config
+          persistentVolumeClaim:
+            claimName: jellyfin-config
+        - name: cache
+          persistentVolumeClaim:
+            claimName: jellyfin-cache
+        - name: media                            # assumes every node mounts /mnt/media
+          hostPath:
+            path: /mnt/media
+            type: Directory
+---
+# jellyfin-svc.yaml  – sticky sessions so each user stays on one pod
+apiVersion: v1
+kind: Service
+metadata:
+  name: jellyfin
+  namespace: jellyfin
+spec:
+  type: LoadBalancer              # k3s + MetalLB will hand out a LAN IP
+  loadBalancerIP: 192.168.42.103  # pick an unused IP in your pool
+  selector:
+    app: jellyfin
+  sessionAffinity: ClientIP       # <-- important for login/session cookies
+  ports:
+    - name: http
+      port: 80
+      targetPort: 8096
+    - name: https
+      port: 443
+      targetPort: 8920
+---
+# jellyfin-hpa.yaml  – autoscale on CPU
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: jellyfin
+  namespace: jellyfin
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: StatefulSet
+    name: jellyfin
+  minReplicas: 2
+  maxReplicas: 8
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 70

@@ -1,0 +1,36 @@
+# ====================================================================
+# Stack: homepage
+# Endpoint: BL-MP2 ( Fredo )
+# Source: Portainer stack ID 121 (portainer_dump\compose\121\docker-compose.yml)
+# Generated: 2025-08-29 19:40:11
+#
+# What this does:
+# - Docker Compose stack exported from Portainer.
+# - Includes the following services (name : image):
+#   - homepage : ghcr.io/gethomepage/homepage:latest
+#
+# How to deploy:
+# - Ensure any referenced volumes/networks exist.
+# - Create/update a .env file if needed.
+# - Run: docker compose up -d
+# ====================================================================
+version: "3.8"
+
+services:
+  homepage:
+    image: ghcr.io/gethomepage/homepage:latest
+    container_name: homepage
+    ports:
+      - ${HOMEPAGE_PORT1}:3000
+    volumes:
+      - ${HOMEPAGE_PORT2}:/app/config
+      #- /srv/homepage/.env:/app/config/.env  # Mount .env file directly into the config directory
+      - ${HOMEPAGE_PORT3}:ro
+    #env_file:
+      #- .env  # Load environment variables from .env file
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - ${HOMEPAGE_PORT4}:-America/New_York}
+      - ${HOMEPAGE_PORT5}:3020
+    restart: unless-stopped

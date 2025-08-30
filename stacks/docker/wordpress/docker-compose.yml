@@ -1,0 +1,58 @@
+# ====================================================================
+# Stack: wordpress
+# Endpoint: endpoint-9
+# Source: Portainer stack ID 31 (portainer_dump\compose\31\docker-compose.yml)
+# Generated: 2025-08-29 19:40:08
+#
+# What this does:
+# - Docker Compose stack exported from Portainer.
+# - Includes the following services (name : image):
+#   - wordpress : wordpress:latest
+#   - db : mysql:5.7
+#
+# How to deploy:
+# - Ensure any referenced volumes/networks exist.
+# - Create/update a .env file if needed.
+# - Run: docker compose up -d
+# ====================================================================
+version: '3.7'
+
+services:
+  wordpress:
+    image: wordpress:latest
+    container_name: wordpress
+    depends_on:
+      - db
+    ports:
+      - "8088:80"  # This will expose WordPress on port 8088, accessible via http://localhost:8088
+    environment:
+      WORDPRESS_DB_HOST: db:3306
+      WORDPRESS_DB_USER: ${WORDPRESS_DB_USER}
+      WORDPRESS_DB_PASSWORD: ${WORDPRESS_DB_PASSWORD}
+      WORDPRESS_DB_NAME: wordpress
+    volumes:
+      - ${WORDPRESS_PORT1}:/var/www/html
+    restart: always
+
+  db:
+    image: mysql:5.7
+    container_name: wordpress_db
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: wordpress
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+    volumes:
+      - ${DB_PORT1}:/var/lib/mysql
+    #command: --skip-grant-tables  # Temporarily added to bypass password authentication
+    restart: always
+
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  wordpress_data:
+  db_data:

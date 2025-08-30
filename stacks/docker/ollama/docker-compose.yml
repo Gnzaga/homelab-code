@@ -1,0 +1,57 @@
+# ====================================================================
+# Stack: ollama
+# Endpoint: Clemenza
+# Source: Portainer stack ID 146 (portainer_dump\compose\146\docker-compose.yml)
+# Generated: 2025-08-29 19:40:11
+#
+# What this does:
+# - Docker Compose stack exported from Portainer.
+# - Includes the following services (name : image):
+#   - ollama : ollama/ollama
+#   - restarter : docker:cli
+#
+# How to deploy:
+# - Ensure any referenced volumes/networks exist.
+# - Create/update a .env file if needed.
+# - Run: docker compose up -d
+# ====================================================================
+version: "3.8"
+
+services:
+  ollama:
+    container_name: ollama
+    image: ollama/ollama
+    restart: unless-stopped
+    ports:
+      - ${OLLAMA_PORT1}:11434
+    volumes:
+      - ${OLLAMA_PORT2}:/root/.ollama/models
+      - ${OLLAMA_PORT3}:ro
+    environment:
+      - TZ=America/New_York
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+  
+  restarter:
+    image: docker:cli
+    container_name: ollama-restarter
+    restart: unless-stopped
+    volumes:
+      - ${RESTARTER_PORT1}:/var/run/docker.sock
+    entrypoint: ["/bin/sh", "-c"]
+    command:
+      - |
+        while true; do
+          if [ "$$(date +'%H:%M')" = '06:00' ]; then
+            echo "Restarting Ollama server at 6:00 AM..."
+            docker restart ollama
+
+            sleep 60
+          fi
+          sleep 30
+        done

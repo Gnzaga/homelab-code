@@ -1,0 +1,169 @@
+# ====================================================================
+# K8s Workload: jellyfin
+# Endpoint/Cluster: endpoint-29
+# Source: Portainer stack ID 137 (portainer_dump\compose\137\k8s-deployment.yml)
+# Generated: 2025-08-29 19:40:11
+#
+# What this does:
+# - Kubernetes manifest exported from Portainer.
+#
+# How to deploy:
+# - kubectl apply -f .
+# - or manage via your GitOps flow.
+# ====================================================================
+# Namespace
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: jellyfin
+---
+# PersistentVolume for config
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: jellyfin-config-pv-v3
+spec:
+  storageClassName: ""
+  capacity:
+    storage: 20Gi
+  accessModes: [ "ReadWriteMany" ]
+  persistentVolumeReclaimPolicy: Retain
+  nfs:
+    server: 192.168.42.59
+    path: /
+---
+# PersistentVolumeClaim for config
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: jellyfin-config
+  namespace: jellyfin
+spec:
+  storageClassName: ""
+  accessModes: [ "ReadWriteMany" ]
+  resources:
+    requests:
+      storage: 20Gi
+  volumeName: jellyfin-config-pv-v3
+---
+# PersistentVolume for cache
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: jellyfin-cache-pv-v3
+spec:
+  storageClassName: ""
+  capacity:
+    storage: 10Gi
+  accessModes: [ "ReadWriteMany" ]
+  persistentVolumeReclaimPolicy: Retain
+  nfs:
+    server: 192.168.42.59
+    path: /
+---
+# PersistentVolumeClaim for cache
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: jellyfin-cache
+  namespace: jellyfin
+spec:
+  storageClassName: ""
+  accessModes: [ "ReadWriteMany" ]
+  resources:
+    requests:
+      storage: 10Gi
+  volumeName: jellyfin-cache-pv-v3
+---
+# StatefulSet
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: jellyfin
+  namespace: jellyfin
+  labels:
+    app: jellyfin
+spec:
+  serviceName: jellyfin-headless
+  replicas: 3
+  selector:
+    matchLabels:
+      app: jellyfin
+  template:
+    metadata:
+      labels:
+        app: jellyfin
+    spec:
+      containers:
+        - name: jellyfin
+          image: jellyfin/jellyfin:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8096
+            - containerPort: 8920
+          volumeMounts:
+            - name: config
+              mountPath: /config
+            - name: cache
+              mountPath: /cache
+            - name: media
+              mountPath: /media
+          resources:
+            requests:
+              cpu: "500m"
+              memory: "512Mi"
+            limits:
+              cpu: "2"
+              memory: "2Gi"
+      volumes:
+        - name: config
+          persistentVolumeClaim:
+            claimName: jellyfin-config
+        - name: cache
+          persistentVolumeClaim:
+            claimName: jellyfin-cache
+        - name: media
+          hostPath:
+            path: /mnt/media
+            type: Directory
+---
+# Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: jellyfin
+  namespace: jellyfin
+spec:
+  type: LoadBalancer
+  loadBalancerIP: 192.168.42.107
+  selector:
+    app: jellyfin
+  sessionAffinity: ClientIP
+  ports:
+    - name: http
+      port: 80
+      targetPort: 8096
+    - name: https
+      port: 443
+      targetPort: 8920
+---
+# HPA
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: jellyfin
+  namespace: jellyfin
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: StatefulSet
+    name: jellyfin
+  minReplicas: 2
+  maxReplicas: 8
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 70

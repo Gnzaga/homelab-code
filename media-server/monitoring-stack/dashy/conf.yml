@@ -1,0 +1,27 @@
+appConfig:
+  title: Monitoring Hub
+  theme: colorful
+
+sections:
+  - name: Media & Monitoring
+    items:
+      - title: Dozzle Logs
+        url: http://${MONITOR_HOST}:${DOZZLE_PORT}
+      - title: Glances Stats
+        url: http://${MONITOR_HOST}:${GLANCES_PORT}
+      - title: Grafana
+        url: http://${MONITOR_HOST}:${GRAFANA_PORT}
+      - title: Prometheus
+        url: http://${MONITOR_HOST}:${PROMETHEUS_PORT}
+      - title: Jellyfin
+        url: http://${MONITOR_HOST}:8096
+      - title: Sonarr
+        url: http://${MONITOR_HOST}:8989
+      - title: Radarr
+        url: http://${MONITOR_HOST}:7878
+      - title: Prowlarr
+        url: http://${MONITOR_HOST}:9696
+      - title: qBittorrent
+        url: http://${MONITOR_HOST}:8081
+      - title: NZBGet
+        url: http://${MONITOR_HOST}:6789

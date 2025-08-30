@@ -1,0 +1,109 @@
+# ====================================================================
+# Stack: milvus-attu
+# Endpoint: VM-CT1
+# Source: Portainer stack ID 164 (portainer_dump\compose\164\docker-compose.yml)
+# Generated: 2025-08-29 19:40:12
+#
+# What this does:
+# - Docker Compose stack exported from Portainer.
+# - Includes the following services (name : image):
+#   - etcd : quay.io/coreos/etcd:v3.5.5
+#   - minio : minio/minio:latest
+#   - milvus : milvusdb/milvus:latest
+#   - attu : zilliz/attu:v2.4
+#
+# How to deploy:
+# - Ensure any referenced volumes/networks exist.
+# - Create/update a .env file if needed.
+# - Run: docker compose up -d
+# ====================================================================
+version: "3.8"
+
+services:
+  etcd:
+    image: quay.io/coreos/etcd:v3.5.5
+    command: >
+      /usr/local/bin/etcd
+      - ${ETCD_PORT1}:2379
+      - ${ETCD_PORT2}:2379
+      --data-dir=/etcd
+      - ${ETCD_PORT3}:2380
+      - ${ETCD_PORT4}:2380
+      - ${ETCD_PORT5}:2380
+    volumes:
+      - ${ETCD_PORT6}:/etcd
+    ports:
+      - ${ETCD_PORT7}:2379
+      - ${ETCD_PORT8}:2380
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "etcdctl", "endpoint", "health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  minio:
+    image: minio/minio:latest
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
+    command: server /data --console-address ":9001"
+    ports:
+      - "${BIND_IP:-127.0.0.1}:9000:9000"  # MinIO API
+      - "${BIND_IP:-127.0.0.1}:9002:9001"  # MinIO console
+    volumes:
+      - ${MINIO_PORT1}:/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  milvus:
+    image: milvusdb/milvus:latest
+    depends_on:
+      etcd:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+    environment:
+      ETCD_ENDPOINTS: etcd:2379
+      MINIO_ADDRESS: minio:9000
+      MINIO_ACCESS_KEY: ${MINIO_ACCESS_KEY}
+      MINIO_SECRET_KEY: ${MINIO_SECRET_KEY}
+      MINIO_USE_SSL: "false"
+      MINIO_BUCKET_NAME: milvus-bucket
+    ports:
+      - "${BIND_IP:-127.0.0.1}:19530:19530"  # gRPC
+      - "${BIND_IP:-127.0.0.1}:9091:9091"    # HTTP
+    volumes:
+      - ${MILVUS_PORT1}:/var/lib/milvus
+    command: ["milvus", "run", "standalone"]
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9091/healthz"]
+      interval: 30s
+      timeout: 10s
+      retries: 10
+      start_period: 90s
+
+  attu:
+    image: zilliz/attu:v2.4
+    depends_on:
+      milvus:
+        condition: service_healthy
+    environment:
+      MILVUS_URL: milvus:19530
+    ports:
+      - "${BIND_IP:-127.0.0.1}:3000:3000"    # Attu UI
+    restart: unless-stopped
+
+volumes:
+  etcd-data:
+  milvus-data:
+  minio-data:
+
+networks:
+  default:
+    driver: bridge

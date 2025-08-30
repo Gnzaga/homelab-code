@@ -1,0 +1,58 @@
+# ====================================================================
+# Stack: vpn-torrent
+# Endpoint: endpoint-25
+# Source: Portainer stack ID 106 (portainer_dump\compose\106\docker-compose.yml)
+# Generated: 2025-08-29 19:40:10
+#
+# What this does:
+# - Docker Compose stack exported from Portainer.
+# - Includes the following services (name : image):
+#   - gluetun : qmcgaw/gluetun
+#   - qbittorrent : linuxserver/qbittorrent
+#
+# How to deploy:
+# - Ensure any referenced volumes/networks exist.
+# - Create/update a .env file if needed.
+# - Run: docker compose up -d
+# ====================================================================
+version: "3.8"
+
+services:
+  gluetun:
+    image: qmcgaw/gluetun
+    container_name: gluetun
+    cap_add:
+      - NET_ADMIN
+    devices:
+      - /dev/net/tun
+    environment:
+      - VPN_SERVICE_PROVIDER=nordvpn
+      - VPN_TYPE=openvpn
+      - OPENVPN_USER=${OPENVPN_USER}
+      - OPENVPN_PASSWORD=${OPENVPN_PASSWORD}
+      - SERVER_COUNTRIES=United States
+      - TZ=America/New_York
+    volumes:
+      - ${GLUETUN_PORT1}:/gluetun
+      - ${GLUETUN_PORT2}:/data/media
+    ports:
+      - 8080:8080     # qBittorrent Web UI
+      - ${GLUETUN_PORT3}:6881
+      - ${GLUETUN_PORT4}:6881/udp
+    restart: unless-stopped
+
+  qbittorrent:
+    image: linuxserver/qbittorrent
+    container_name: qbittorrent
+    network_mode: "service:gluetun"
+    depends_on:
+      - gluetun
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=America/New_York
+      - WEBUI_PORT=8080
+    volumes:
+      - ${QBITTORRENT_PORT1}:/config
+      - ${QBITTORRENT_PORT2}:/data/media
+    restart: unless-stopped

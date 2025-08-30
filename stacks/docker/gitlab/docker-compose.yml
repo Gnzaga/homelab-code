@@ -1,0 +1,55 @@
+# ====================================================================
+# Stack: gitlab
+# Endpoint: endpoint-16
+# Source: Portainer stack ID 77 (portainer_dump\compose\77\docker-compose.yml)
+# Generated: 2025-08-29 19:40:09
+#
+# What this does:
+# - Docker Compose stack exported from Portainer.
+# - Includes the following services (name : image):
+#   - gitlab : gitlab/gitlab-ee:latest
+#
+# How to deploy:
+# - Ensure any referenced volumes/networks exist.
+# - Create/update a .env file if needed.
+# - Run: docker compose up -d
+# ====================================================================
+version: '3.8'
+
+services:
+  gitlab:
+    image: gitlab/gitlab-ee:latest
+    networks:
+      - gitlab-net
+    ports:
+      - ${GITLAB_PORT1}:80
+      - ${GITLAB_PORT2}:443
+      - ${GITLAB_PORT3}:22
+    volumes:
+      - ${GITLAB_PORT4}:/etc/gitlab
+      - ${GITLAB_PORT5}:/var/log/gitlab
+      - ${GITLAB_PORT6}:/var/opt/gitlab
+    environment:
+      GITLAB_OMNIBUS_CONFIG: |
+        external_url '${GITLAB_EXTERNAL_URL}'
+        gitlab_rails['gitlab_shell_ssh_port'] = 22
+      GITLAB_ROOT_PASSWORD: "${GITLAB_ROOT_PASSWORD}"
+    deploy:
+      mode: replicated
+      replicas: 1
+      placement:
+        constraints: [node.role == manager]
+      restart_policy:
+        condition: any
+      update_config:
+        parallelism: 1
+        delay: 10s
+
+networks:
+  gitlab-net:
+    driver: overlay
+
+volumes:
+  gitlab-config:
+  gitlab-logs:
+  gitlab-data:

@@ -1,0 +1,39 @@
+# ====================================================================
+# Stack: stocker-trading-backtest
+# Endpoint: endpoint-9
+# Source: Portainer stack ID 19 (portainer_dump\compose\19\docker-compose.yml)
+# Generated: 2025-08-29 19:40:08
+#
+# What this does:
+# - Docker Compose stack exported from Portainer.
+# - Includes the following services (name : image):
+#   - jupyter : jupyter/scipy-notebook:latest
+#   - backtrader : backtrader
+#
+# How to deploy:
+# - Ensure any referenced volumes/networks exist.
+# - Create/update a .env file if needed.
+# - Run: docker compose up -d
+# ====================================================================
+version: '3.8'
+
+services:
+  jupyter:
+    image: jupyter/scipy-notebook:latest
+    container_name: jupyter_stock
+    volumes:
+      - ${JUPYTER_PORT1}:/home/jovyan/work
+    ports:
+      - ${JUPYTER_PORT2}:8888
+    environment:
+      - JUPYTER_ENABLE_LAB=yes
+    command: start-notebook.sh --NotebookApp.token=''
+
+  backtrader:
+    image: backtrader  # Use the existing backtrader image in Portainer
+    container_name: backtrader_service
+    volumes:
+      - ${BACKTRADER_PORT1}:/strategies
+    ports:
+      - ${BACKTRADER_PORT2}:8889
+    command: python /strategies/<your_strategy_file>.py  # Replace with your strategy script
