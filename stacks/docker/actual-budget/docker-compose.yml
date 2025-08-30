@@ -32,17 +32,17 @@ services:
       image: docker.io/sakowicz/actual-ai:latest
       restart: unless-stopped
       environment:
-        ACTUAL_SERVER_URL: ${ACTUAL_SERVER_URL}
-        ACTUAL_PASSWORD: ${ACTUAL_PASSWORD}
-        ACTUAL_BUDGET_ID: ${ACTUAL_BUDGET_ID} # moved to .env
+        ACTUAL_SERVER_URL: ${BUDGET_SERVER_URL}
+        ACTUAL_PASSWORD: ${BUDGET_PASSWORD}
+        ACTUAL_BUDGET_ID: ${BUDGET_ID} # moved to .env
         CLASSIFICATION_SCHEDULE_CRON: 0 */4 * * * # How often to run classification.
         LLM_PROVIDER: ollama # Can be "openai", "anthropic", "google-generative-ai", "ollama" or "groq"
-        FEATURES: '["classifyOnStartup", "syncAccountsBeforeClassify", "freeWebSearch", "rerunMissedTransactions", "suggestNewCategories", "disableRateLimiter", "dryRun"]'
+        FEATURES: '["classifyOnStartup", "syncAccountsBeforeClassify", "freeWebSearch", "suggestNewCategories", "disableRateLimiter", "dryRun"]'
         OLLAMA_MODEL: llama3.2:latest
         OLLAMA_BASE_URL: ${OLLAMA_BASE_URL}
 #     OLLAMA_MODEL=llama3.1 optional. required if you want to use an Ollama specific model, default is "phi3.5"
 #      OLLAMA_BASE_URL=http://localhost:11434/api # optional. required for ollama provider
 volumes:
   actual_data:
-  
+
 

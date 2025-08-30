@@ -38,10 +38,10 @@ services:
     environment:
       - VPN_SERVICE_PROVIDER=${VPN_SERVICE_PROVIDER}
       - VPN_TYPE=${VPN_TYPE}
-      - OPENVPN_USER=${OPENVPN_USER}
+      - OPENVPN_USER=${OPENVPN_USERNAME}
       - OPENVPN_PASSWORD=${OPENVPN_PASSWORD}
       - SERVER_COUNTRIES=${SERVER_COUNTRIES}
-      - TZ=${TZ}
+      - TZ=${TIMEZONE}
       - DOT=${DOT}
       - DNS_ADDRESS=${DNS_ADDRESS}
     volumes:
@@ -62,10 +62,10 @@ services:
       gluetun:
         condition: service_healthy
     environment:
-      - PUID=${PUID}
-      - PGID=${PGID}
-      - TZ=${TZ}
-      - WEBUI_PORT=${WEBUI_PORT}
+      - PUID=${USER_ID}
+      - PGID=${GROUP_ID}
+      - TZ=${TIMEZONE}
+      - WEBUI_PORT=${QBITTORRENT_WEBUI_PORT}
     volumes:
       - ${QBITTORRENT_PORT1}:/config
       - ${QBITTORRENT_PORT2}:/data/media
@@ -79,9 +79,9 @@ services:
       gluetun:
         condition: service_healthy
     environment:
-      - PUID=${PUID}
-      - PGID=${PGID}
-      - TZ=${TZ}
+      - PUID=${USER_ID}
+      - PGID=${GROUP_ID}
+      - TZ=${TIMEZONE}
     volumes:
       - ${NZBGET_PORT1}:/config
       - ${NZBGET_PORT2}:/data/media
@@ -94,9 +94,9 @@ services:
     ports:
       - ${SONARR_PORT1}:8989
     environment:
-      - PUID=${PUID}
-      - PGID=${PGID}
-      - TZ=${TZ}
+      - PUID=${USER_ID}
+      - PGID=${GROUP_ID}
+      - TZ=${TIMEZONE}
     volumes:
       - ${SONARR_PORT2}:/config
       - ${SONARR_PORT3}:/data/media
@@ -108,9 +108,9 @@ services:
     ports:
       - ${RADARR_PORT1}:7878
     environment:
-      - PUID=${PUID}
-      - PGID=${PGID}
-      - TZ=${TZ}
+      - PUID=${USER_ID}
+      - PGID=${GROUP_ID}
+      - TZ=${TIMEZONE}
     volumes:
       - ${RADARR_PORT2}:/config
       - ${RADARR_PORT3}:/data/media
@@ -122,9 +122,9 @@ services:
     ports:
       - ${LIDARR_PORT1}:8686
     environment:
-      - PUID=${PUID}
-      - PGID=${PGID}
-      - TZ=${TZ}
+      - PUID=${USER_ID}
+      - PGID=${GROUP_ID}
+      - TZ=${TIMEZONE}
     volumes:
       - ${LIDARR_PORT2}:/config
       - ${LIDARR_PORT3}:/data/media
@@ -136,9 +136,9 @@ services:
     ports:
       - ${BAZARR_PORT1}:6767
     environment:
-      - PUID=${PUID}
-      - PGID=${PGID}
-      - TZ=${TZ}
+      - PUID=${USER_ID}
+      - PGID=${GROUP_ID}
+      - TZ=${TIMEZONE}
     volumes:
       - ${BAZARR_PORT2}:/config
       - ${BAZARR_PORT3}:/data/media
@@ -150,9 +150,9 @@ services:
     ports:
       - ${PROWLARR_PORT1}:9696
     environment:
-      - PUID=${PUID}
-      - PGID=${PGID}
-      - TZ=${TZ}
+      - PUID=${USER_ID}
+      - PGID=${GROUP_ID}
+      - TZ=${TIMEZONE}
     volumes:
       - ${PROWLARR_PORT2}:/config
     restart: unless-stopped
@@ -164,9 +164,9 @@ services:
       - ${FLARESOLVERR_PORT1}:8191
     environment:
       - LOG_LEVEL=${LOG_LEVEL}
-      - PUID=${PUID}
-      - PGID=${PGID}
-      - TZ=${TZ}
+      - PUID=${USER_ID}
+      - PGID=${GROUP_ID}
+      - TZ=${TIMEZONE}
     volumes:
       - ${FLARESOLVERR_PORT2}:/app
     restart: unless-stopped
@@ -176,7 +176,7 @@ services:
     container_name: jellyfin
     network_mode: host
     environment:
-      - TZ=${TZ}
+      - TZ=${TIMEZONE}
       - NVIDIA_VISIBLE_DEVICES=${NVIDIA_VISIBLE_DEVICES}
       - NVIDIA_DRIVER_CAPABILITIES=${NVIDIA_DRIVER_CAPABILITIES}
       - JELLYFIN_PublishedServerUrl=${JELLYFIN_PUBLISHED_SERVER_URL}
@@ -199,7 +199,7 @@ services:
     container_name: jellyseerr
     environment:
       - LOG_LEVEL=debug
-      - TZ=${TZ}
+      - TZ=${TIMEZONE}
       - PORT=5055
     ports:
       - ${JELLYSEERR_PORT1}:5055
@@ -214,9 +214,9 @@ services:
     ports:
       - ${READARR_PORT1}:8787
     environment:
-      - PUID=${PUID}
-      - PGID=${PGID}
-      - TZ=${TZ}
+      - PUID=${USER_ID}
+      - PGID=${GROUP_ID}
+      - TZ=${TIMEZONE}
     volumes:
       - ${READARR_PORT2}:/config
       - ${READARR_PORT3}:/books

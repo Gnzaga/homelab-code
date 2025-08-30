@@ -27,8 +27,8 @@ services:
       - "8088:80"  # This will expose WordPress on port 8088, accessible via http://localhost:8088
     environment:
       WORDPRESS_DB_HOST: db:3306
-      WORDPRESS_DB_USER: ${WORDPRESS_DB_USER}
-      WORDPRESS_DB_PASSWORD: ${WORDPRESS_DB_PASSWORD}
+      WORDPRESS_DB_USER: ${WORDPRESS_DATABASE_USER}
+      WORDPRESS_DB_PASSWORD: ${WORDPRESS_DATABASE_PASSWORD}
       WORDPRESS_DB_NAME: wordpress
     volumes:
       - ${WORDPRESS_PORT1}:/var/www/html
@@ -38,10 +38,10 @@ services:
     image: mysql:5.7
     container_name: wordpress_db
     environment:
-      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_ROOT_PASSWORD: ${WORDPRESS_MYSQL_ROOT_PASSWORD}
       MYSQL_DATABASE: wordpress
-      MYSQL_USER: ${MYSQL_USER}
-      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+      MYSQL_USER: ${WORDPRESS_MYSQL_USER}
+      MYSQL_PASSWORD: ${WORDPRESS_MYSQL_PASSWORD}
     volumes:
       - ${DB_PORT1}:/var/lib/mysql
     #command: --skip-grant-tables  # Temporarily added to bypass password authentication
